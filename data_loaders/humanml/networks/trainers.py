@@ -638,6 +638,26 @@ class CompTrainerV6(object):
                                       shuffle=True, collate_fn=collate_fn, pin_memory=True)
             print("Max_Length:%03d Training Split:%05d Validation Split:%04d" % (schedule_len, len(train_loader), len(val_loader)))
 
+            # Within the training loop of train.py
+            for data, target in train_loader:
+                data = data.to(device); target = target.to(device)
+                data.requires_grad = True
+                output = model(data)
+                loss = criterion(output, target)
+                loss.backward()
+                # FGSM: create adversarial example by a small step in gradient direction
+                epsilon = 0.01  # small perturbation magnitude
+                adv_data = data + epsilon * data.grad.sign()
+                adv_data = adv_data.detach()  # treated as new input (requires_grad=False)
+                # Second forward pass on adversarial data
+                adv_output = model(adv_data)
+                loss_adv = criterion(adv_output, target)
+                # Combine losses (original + adversarial) for robust training
+                total_loss = loss * 0.5 + loss_adv * 0.5
+                optimizer.zero_grad()
+                total_loss.backward()
+                optimizer.step()
+
             min_val_loss = np.inf
             stop_cnt = 0
             logs = OrderedDict()

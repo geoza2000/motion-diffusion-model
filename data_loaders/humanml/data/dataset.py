@@ -164,6 +164,13 @@ class Text2MotionDataset(data.Dataset):
 
         len_gap = (m_length - self.max_length) // self.opt.unit_length
 
+        if not np.all(np.isfinite(motion)) or motion.shape[0] == 0:
+            raise ValueError("Invalid or malicious input detected in motion data.")
+
+        # Ensure tokenized text meets expected length limits:
+        if sent_len > self.opt.max_text_len + 2:
+            raise ValueError("Text input exceeds maximum allowed length, potentially malicious.")
+
         if self.opt.is_train:
             if m_length != self.max_length:
             # print("Motion original length:%d_%d"%(m_length, len(motion)))

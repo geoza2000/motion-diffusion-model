@@ -1,0 +1,12 @@
+# Example in ci.yml (GitHub Actions):
+name: Security Audit
+on: [push, pull_request]
+jobs:
+  security_scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install Dependencies
+        run: pip install pip-audit
+      - name: Run Security Scan
+        run: pip-audit

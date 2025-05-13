@@ -23,6 +23,10 @@ def save_image(image_numpy, image_path):
     img_pil = Image.fromarray(image_numpy)
     img_pil.save(image_path)
 
+def defend_input(input_tensor, noise_std=1e-3):
+    # Apply a slight random noise to diffuse adversarial gradients
+    noise = noise_std * torch.randn_like(input_tensor)
+    return input_tensor + noise
 
 def save_logfile(log_loss, save_path):
     with open(save_path, 'wt') as f:

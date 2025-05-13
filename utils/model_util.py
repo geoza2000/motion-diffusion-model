@@ -1,4 +1,4 @@
-import torch
+import torch, hashlib
 from model.mdm import MDM
 from diffusion import gaussian_diffusion as gd
 from diffusion.respace import SpacedDiffusion, space_timesteps
@@ -130,3 +130,15 @@ def load_saved_model(model, model_path, use_avg: bool=False):  # use_avg_model
             print('checkpoint has no avg model, loading as usual.')
     load_model_wo_clip(model, state_dict)
     return model
+
+def load_model_secure(filepath: str, expected_sha256: str):
+    """Load a PyTorch model after verifying file integrity."""
+    # Compute SHA-256 hash of the file
+    sha256 = hashlib.sha256()
+    with open(filepath, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b''):
+            sha256.update(chunk)
+    file_hash = sha256.hexdigest()
+    if file_hash.lower() != expected_sha256.lower():
+        raise RuntimeError("Model file integrity check failed! The file may be corrupt or tampered.")
+    return torch.load(filepath)
